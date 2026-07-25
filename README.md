@@ -1,10 +1,10 @@
-# 🚀 ForgePDF - Offline PDF Toolkit
+# 🚀 ForgePDF - Smart Offline PDF Toolkit
 
 A powerful, high-performance, 100% offline desktop application for Windows built with Python, PyMuPDF, `pdf2docx`, and `CustomTkinter`.
 
 ---
 
-## ✨ Main Features
+## ✨ Key Features
 
 1. 📄 **PDF to Word Converter (.docx)**
    - High-fidelity conversion preserving original layout, margins, font sizes, and line spacing.
@@ -29,18 +29,16 @@ A powerful, high-performance, 100% offline desktop application for Windows built
 
 ---
 
-## 💻 Installation & Usage
+## 🚀 Quick Setup & Desktop Shortcut (1-Click Installation)
 
-1. **Prerequisites**: Python 3.10+ installed.
-2. **Install Dependencies**:
+1. **Clone or Download Repository**:
    ```bash
-   pip install -r requirements.txt
+   git clone https://github.com/YOUR_USERNAME/ForgePDF.git
+   cd ForgePDF
    ```
-3. **Run Application**:
-   Double click `Jalankan_ForgePDF.bat` on your Desktop or run:
-   ```bash
-   python main.py
-   ```
+2. **Run 1-Click Installer**:
+   - Double-click **`install.bat`** inside the folder.
+   - It will automatically install all dependencies and **create a clean silent `ForgePDF` shortcut on your Desktop**!
 
 ---
 
