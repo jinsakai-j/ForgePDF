@@ -1,6 +1,6 @@
 # 🚀 ForgePDF - Smart Offline PDF Toolkit
 
-A powerful, high-performance, 100% offline desktop application for Windows built with Python, PyMuPDF, `pdf2docx`, and `CustomTkinter`.
+A powerful, high-performance, 100% offline desktop application for Windows & Linux built with Python, PyMuPDF, `pdf2docx`, and `CustomTkinter`.
 
 ---
 
@@ -29,7 +29,9 @@ A powerful, high-performance, 100% offline desktop application for Windows built
 
 ---
 
-## 🚀 Quick Setup & Desktop Shortcut (1-Click Installation)
+## 💻 How to Install & Run
+
+### 🪟 On Windows OS (1-Click Setup)
 
 1. **Clone or Download Repository**:
    ```bash
@@ -39,6 +41,30 @@ A powerful, high-performance, 100% offline desktop application for Windows built
 2. **Run 1-Click Installer**:
    - Double-click **`install.bat`** inside the folder.
    - It will automatically install all dependencies and **create a clean silent `ForgePDF` shortcut on your Desktop**!
+
+3. **Or Run Manually via Terminal**:
+   ```bash
+   pip install -r requirements.txt
+   python main.py
+   ```
+
+---
+
+### 🐧 On Linux OS (Kali Linux / Ubuntu / Debian)
+
+1. **Clone Repository**:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/ForgePDF.git
+   cd ForgePDF
+   ```
+2. **Install Required Packages**:
+   ```bash
+   pip3 install -r requirements.txt --break-system-packages
+   ```
+3. **Launch Application**:
+   ```bash
+   python3 main.py
+   ```
 
 ---
 

@@ -1,5 +1,5 @@
 @echo off
 title ForgePDF - Smart PDF Toolkit
 echo Membuka ForgePDF...
-cd /d "C:\Users\uSer\pdf_to_word_converter"
+cd /d "C:\Users\uSer\ForgePDF"
 python main.py

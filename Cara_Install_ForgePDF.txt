@@ -1,0 +1,37 @@
+====================================================================
+           🚀 PANDUAN CARA INSTALL & MENJALANKAN FORGEPDF
+====================================================================
+
+Terima kasih telah mengunduh ForgePDF! 
+Aplikasi ini 100% Offline, Aman, dan Bebas dari Malware.
+
+--------------------------------------------------------------------
+📌 CARA DI WINDOWS OS (1-CLICK SETUP)
+--------------------------------------------------------------------
+1. Extract file "ForgePDF.zip" atau folder git clone Anda.
+2. Buka folder "ForgePDF".
+3. Klik 2x file:
+   👉 install.bat
+4. Tunggu beberapa detik hingga installer selesai.
+5. Shortcut "ForgePDF" otomatis dibuat di Desktop PC Anda!
+   Atau jalankan via terminal: python main.py
+
+--------------------------------------------------------------------
+📌 CARA DI LINUX OS (KALI LINUX / UBUNTU / DEBIAN)
+--------------------------------------------------------------------
+1. Buka Terminal di dalam folder ForgePDF:
+   cd ForgePDF
+
+2. Install modul Python pendukung:
+   pip3 install -r requirements.txt --break-system-packages
+
+3. Jalankan aplikasi:
+   python3 main.py
+
+--------------------------------------------------------------------
+✨ FITUR UTAMA FORGEPDF:
+1. 📄 Konversi PDF ke Word (.docx) + Mode OCR Presisi 1:1.
+2. 🗜️ Kompresi Ukuran PDF (Preset 1-2 MB, 3-5 MB, 6-10 MB).
+3. 🔢 Penomoran Halaman Otomatis (Romawi sebelum BAB I, Angka 1 mulai BAB I).
+
+Selamat Menggunakan ForgePDF! ⚡
