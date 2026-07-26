@@ -35,7 +35,7 @@ A powerful, high-performance, 100% offline desktop application for Windows & Lin
 
 1. **Clone or Download Repository**:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/ForgePDF.git
+   git clone https://github.com/jinsakai-j/ForgePDF.git
    cd ForgePDF
    ```
 2. **Run 1-Click Installer**:
@@ -54,7 +54,7 @@ A powerful, high-performance, 100% offline desktop application for Windows & Lin
 
 1. **Clone Repository**:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/ForgePDF.git
+   git clone https://github.com/jinsakai-j/ForgePDF.git
    cd ForgePDF
    ```
 2. **Install Required Packages**:
