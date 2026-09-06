@@ -611,5 +611,11 @@ if __name__ == "__main__":
     else:
         root = tk.Tk()
 
+    _icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "forgepdf_icon.ico")
+    try:
+        root.iconbitmap(_icon_path)
+    except Exception:
+        pass
+
     app = PDFToWordApp(root)
     root.mainloop()
