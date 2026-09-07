@@ -56,8 +56,10 @@ A powerful, high-performance, 100% offline desktop application for Windows & Lin
 
 ### 🐧 On Linux OS (Kali Linux / Ubuntu / Debian)
 
-1. **Clone Repository**:
+1. **Install System Packages & Clone Repository**:
    ```bash
+   sudo apt update
+   sudo apt install -y git python3 python3-pip python3-tk
    git clone https://github.com/jinsakai-j/ForgePDF.git
    cd ForgePDF
    ```
@@ -65,10 +67,15 @@ A powerful, high-performance, 100% offline desktop application for Windows & Lin
    ```bash
    pip3 install -r requirements.txt --break-system-packages
    ```
+   > Untuk fitur **OCR Gambar** (tab 🔤):
+   > `pip3 install rapidocr_onnxruntime --break-system-packages`
 3. **Launch Application**:
    ```bash
    python3 main.py
    ```
+
+> Note: `install.bat` and the Desktop shortcut work only on **Windows**. On Linux just run `python3 main.py`.
+> Image-based OCR (EasyOCR) requires PyTorch — on Linux install with: `pip3 install easyocr --break-system-packages` (only needed for scanned-PDF conversion with OCR mode).
 
 ---
 
