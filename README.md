@@ -23,6 +23,10 @@ A powerful, high-performance, 100% offline desktop application for Windows & Lin
    - Automatically formats preliminary pages as Roman numerals (`i, ii, iii...`) and switches to Latin (`1, 2, 3...`) from Chapter 1.
    - Automatically skips Cover (Page 1).
 
+4. 🔤 **OCR Gambar (Ekstrak Teks)**
+   - Extract text from photos, scans, or screenshots — 100% local (RapidOCR/onnx).
+   - Results sorted by position (left-to-right, top-to-bottom), copyable or savable as `.txt`.
+
 4. 🛡️ **100% Offline & Private**
    - Zero internet connection required.
    - All processing is done locally on your CPU/RAM.
@@ -72,4 +76,4 @@ A powerful, high-performance, 100% offline desktop application for Windows & Lin
 - **GUI**: CustomTkinter / Tkinter
 - **PDF & Image Engine**: PyMuPDF (`fitz`), Pillow
 - **DOCX Engine**: `pdf2docx`, `python-docx`
-- **OCR Engine**: EasyOCR, PyTesseract
+- **OCR Engine**: EasyOCR (PDF → Word), RapidOCR (OCR Gambar)

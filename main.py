@@ -27,6 +27,7 @@ class PDFToWordApp:
         self.output_dir = ""
         self.is_processing = False
         self.cancel_requested = False
+        self.ocr_selected_files = []
 
         if HAS_CTK:
             self._setup_ctk_ui()
@@ -61,10 +62,12 @@ class PDFToWordApp:
         self.tab_convert = self.tabview.add("📄 PDF ke Word")
         self.tab_compress = self.tabview.add("🗜️ Kompres PDF")
         self.tab_numbering = self.tabview.add("🔢 Penomoran Halaman")
+        self.tab_ocr = self.tabview.add("🔤 OCR Gambar")
 
         self._setup_convert_tab()
         self._setup_compress_tab()
         self._setup_numbering_tab()
+        self._setup_ocr_tab()
 
         # Shared File Selection & Output Area at bottom
         self.shared_frame = ctk.CTkFrame(self.root, corner_radius=10)
@@ -258,6 +261,225 @@ class PDFToWordApp:
         )
         self.number_btn.pack(fill="x", padx=10, pady=10)
 
+    def _setup_ocr_tab(self):
+        frame = self.tab_ocr
+
+        ctk.CTkLabel(frame, text="🔤 Ekstrak Teks dari Gambar (OCR)", font=("Segoe UI", 13, "bold"),
+                     text_color="#F8FAFC").pack(anchor="w", padx=10, pady=(10, 2))
+        ctk.CTkLabel(frame, text="Buat foto/scan/screenshot yang berisi teks — diproses 100% lokal (RapidOCR/onnx). "
+                                "Butuh: pip install rapidocr_onnxruntime",
+                     font=("Segoe UI", 10), text_color="#94A3B8").pack(anchor="w", padx=10, pady=(0, 8))
+
+        btn_row = ctk.CTkFrame(frame, fg_color="transparent")
+        btn_row.pack(fill="x", padx=10, pady=2)
+        self.ocr_pick_btn = ctk.CTkButton(btn_row, text="🖼️ Pilih Gambar", font=("Segoe UI", 12, "bold"),
+                                          command=self._pick_ocr_images, height=34,
+                                          fg_color="#16A34A", hover_color="#15803D")
+        self.ocr_pick_btn.pack(side="left")
+        self.ocr_clear_btn = ctk.CTkButton(btn_row, text="🗑️ Hapus", font=("Segoe UI", 11),
+                                           command=self._clear_ocr_files, height=34, width=90,
+                                           fg_color="#EF4444", hover_color="#DC2626")
+        self.ocr_clear_btn.pack(side="left", padx=(8, 0))
+
+        self.ocr_files_display = ctk.CTkTextbox(frame, height=62, font=("Consolas", 10))
+        self.ocr_files_display.pack(fill="x", padx=10, pady=6)
+        self._set_ocr_display("Belum ada gambar dipilih.")
+
+        self.ocr_btn = ctk.CTkButton(frame, text="🔍 Ekstrak Teks Sekarang", font=("Segoe UI", 14, "bold"),
+                                     command=self.start_ocr_extract, height=40,
+                                     fg_color="#10B981", hover_color="#059669")
+        self.ocr_btn.pack(fill="x", padx=10, pady=6)
+
+        result_bar = ctk.CTkFrame(frame, fg_color="transparent")
+        result_bar.pack(fill="x", padx=10, pady=(4, 0))
+        ctk.CTkLabel(result_bar, text="Hasil Teks:", font=("Segoe UI", 11, "bold"),
+                     text_color="#F8FAFC").pack(side="left")
+        ctk.CTkButton(result_bar, text="💾 Simpan .txt", width=100, height=28, font=("Segoe UI", 10),
+                      fg_color="#3B82F6", hover_color="#2563EB", command=self._save_ocr_text).pack(side="right")
+        ctk.CTkButton(result_bar, text="📋 Salin", width=80, height=28, font=("Segoe UI", 10),
+                      command=self._copy_ocr_text).pack(side="right", padx=(6, 0))
+
+        self.ocr_result = ctk.CTkTextbox(frame, font=("Consolas", 10))
+        self.ocr_result.pack(fill="both", expand=True, padx=10, pady=(4, 10))
+        self.ocr_result.insert("1.0", "Hasil ekstraksi teks akan muncul di sini...")
+
+    def _set_ocr_display(self, text):
+        self.ocr_files_display.configure(state="normal")
+        self.ocr_files_display.delete("1.0", tk.END)
+        self.ocr_files_display.insert("1.0", text)
+        self.ocr_files_display.configure(state="disabled")
+
+    def _pick_ocr_images(self):
+        files = filedialog.askopenfilenames(
+            title="Pilih Gambar (foto/scan/screenshot)",
+            filetypes=[("Gambar", "*.png *.jpg *.jpeg *.webp *.bmp"), ("Semua File", "*.*")]
+        )
+        if not files:
+            return
+        self.ocr_selected_files = list(files)
+        lines = "\n".join(f"{i+1}. {os.path.basename(f)}" for i, f in enumerate(files))
+        self._set_ocr_display(f"Terpilih {len(files)} gambar:\n{lines}")
+
+    def _clear_ocr_files(self):
+        self.ocr_selected_files = []
+        self._set_ocr_display("Belum ada gambar dipilih.")
+
+    def start_ocr_extract(self):
+        if self.is_processing:
+            return
+        if not self.ocr_selected_files:
+            messagebox.showwarning("Peringatan", "Silakan pilih setidaknya 1 gambar terlebih dahulu!")
+            return
+        self.cancel_requested = False
+        self.set_buttons_state(True)
+        threading.Thread(target=self._run_ocr_extract, daemon=True).start()
+
+    def _run_ocr_extract(self):
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+        except ImportError:
+            self.root.after(0, lambda: (self.set_buttons_state(False),
+                                        messagebox.showerror(
+                                            "OCR", "RapidOCR belum terpasang.\n\nJalankan:\npip install rapidocr_onnxruntime\nLalu buka aplikasi lagi.")))
+            return
+        try:
+            engine = RapidOCR()
+        except Exception as e:
+            self.root.after(0, lambda: (self.set_buttons_state(False),
+                                        messagebox.showerror("OCR", f"Gagal memuat engine OCR: {e}")))
+            return
+
+        total = len(self.ocr_selected_files)
+        chunks = []
+        for i, f in enumerate(self.ocr_selected_files):
+            if self.cancel_requested:
+                break
+            name = os.path.basename(f)
+            self.update_status(f"[{i+1}/{total}] OCR {name}...", i / total)
+            try:
+                res, _ = engine(f)
+                body = self._ocr_texts_to_readable(res)
+                if body:
+                    chunks.append(f"[{name}]\n{body}")
+            except Exception:
+                pass
+
+        result_text = "\n\n".join(chunks).strip()
+
+        def _finish():
+            self.set_buttons_state(False)
+            if self.cancel_requested:
+                self.update_status("⛔ OCR dibatalkan oleh pengguna.", 0.0)
+                return
+            self.ocr_result.configure(state="normal")
+            self.ocr_result.delete("1.0", tk.END)
+            self.ocr_result.insert("1.0", result_text or "Tidak ada teks yang terdeteksi.")
+            self.ocr_result.configure(state="disabled")
+            self.update_status(f"OCR selesai: {total} gambar diproses.", 1.0)
+
+        self.root.after(0, _finish)
+
+    @staticmethod
+    def _ocr_texts_to_readable(res):
+        if not res:
+            return ""
+        items = []
+        for r in res:
+            if isinstance(r, dict):
+                box = r.get("box") or r.get("boxes") or []
+                text = str(r.get("text") or r.get("txt") or "").strip()
+            else:
+                text = str(r[1]).strip() if len(r) > 1 else ""
+                box = r[0] if r and isinstance(r[0], list) else []
+            if text:
+                items.append((box, text))
+        if not items:
+            return ""
+        items.sort(key=lambda it: (it[0][0][1], it[0][0][0]) if it[0] else (0, 0))
+        return "\n".join(t for _, t in items)
+
+    def _copy_ocr_text(self):
+        try:
+            text = self.ocr_result.get("1.0", "end").strip()
+        except Exception:
+            return
+        if not text:
+            return
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+        self.update_status("Teks hasil OCR disalin ke clipboard.", 1.0)
+
+    def _save_ocr_text(self):
+        try:
+            text = self.ocr_result.get("1.0", "end").strip()
+        except Exception:
+            return
+        if not text:
+            messagebox.showwarning("OCR", "Belum ada hasil OCR untuk disimpan.")
+            return
+        path = filedialog.asksaveasfilename(
+            title="Simpan hasil OCR", defaultextension=".txt",
+            filetypes=[("Teks", "*.txt"), ("Semua File", "*.*")],
+            initialfile="hasil_ocr.txt")
+        if not path:
+            return
+        try:
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(text)
+            self.update_status(f"Hasil OCR disimpan: {path}", 1.0)
+        except Exception as e:
+            messagebox.showerror("OCR", f"Gagal menyimpan: {e}")
+
+    def _tk_fallback_ocr(self):
+        files = filedialog.askopenfilenames(
+            title="Pilih Gambar (foto/scan/screenshot)",
+            filetypes=[("Gambar", "*.png *.jpg *.jpeg *.webp *.bmp"), ("Semua File", "*.*")]
+        )
+        if not files:
+            return
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+        except ImportError:
+            messagebox.showerror("OCR", "RapidOCR belum terpasang.\n\nJalankan:\npip install rapidocr_onnxruntime")
+            return
+        try:
+            engine = RapidOCR()
+        except Exception as e:
+            messagebox.showerror("OCR", f"Gagal memuat engine OCR: {e}")
+            return
+
+        self.is_processing = True
+        self.cancel_btn.config(state="normal")
+        saved = []
+        for i, f in enumerate(files):
+            if self.cancel_requested:
+                break
+            self.status_label.config(text=f"[{i+1}/{len(files)}] OCR {os.path.basename(f)}...")
+            self.progress_bar['value'] = i / len(files) * 100
+            try:
+                res, _ = engine(f)
+                body = self._ocr_texts_to_readable(res)
+                if body:
+                    base = os.path.splitext(os.path.basename(f))[0]
+                    out_path = os.path.join(os.path.dirname(f), base + "_ocr.txt")
+                    n = 2
+                    while os.path.exists(out_path):
+                        out_path = os.path.join(os.path.dirname(f), f"{base}_ocr_{n}.txt")
+                        n += 1
+                    with open(out_path, "w", encoding="utf-8") as fh:
+                        fh.write(body)
+                    saved.append(f"{os.path.basename(f)} -> {os.path.basename(out_path)}")
+            except Exception:
+                pass
+
+        self.is_processing = False
+        self.cancel_btn.config(state="disabled")
+        self.status_label.config(text="OCR selesai." if saved else "Tidak ada teks terdeteksi.")
+        if saved:
+            messagebox.showinfo("Hasil OCR", "Teks sudah disimpan sebagai .txt:\n\n" + "\n".join(saved))
+        else:
+            messagebox.showinfo("Hasil OCR", "Tidak ada teks yang terdeteksi dari gambar terpilih.")
+
     def _setup_tk_ui(self):
         # Fallback Tkinter UI
         self.root.configure(bg="#121826")
@@ -304,6 +526,9 @@ class PDFToWordApp:
 
         self.number_btn = tk.Button(actions, text="🔢 Nomor Halaman", font=("Segoe UI", 10, "bold"), bg="#0284C7", fg="white", command=lambda: self.start_action_thread("numbering"), relief="flat", pady=8)
         self.number_btn.pack(side="left", expand=True, fill="x", padx=2)
+
+        self.ocr_btn_tk = tk.Button(actions, text="🔤 OCR Gambar", font=("Segoe UI", 10, "bold"), bg="#16A34A", fg="white", command=self._tk_fallback_ocr, relief="flat", pady=8)
+        self.ocr_btn_tk.pack(side="left", expand=True, fill="x", padx=2)
 
         self.cancel_btn = tk.Button(actions, text="⛔ Batal", font=("Segoe UI", 10, "bold"), bg="#DC2626", fg="white", command=self.request_cancel, relief="flat", pady=8, state="disabled")
         self.cancel_btn.pack(side="left", padx=2)
@@ -365,11 +590,15 @@ class PDFToWordApp:
             self.convert_btn.configure(state=state)
             self.compress_btn.configure(state=state)
             self.number_btn.configure(state=state)
+            self.ocr_btn.configure(state=state)
+            self.ocr_pick_btn.configure(state=state)
+            self.ocr_clear_btn.configure(state=state)
             self.cancel_btn.configure(state=cancel_state)
         else:
             self.convert_btn.config(state=state)
             self.compress_btn.config(state=state)
             self.number_btn.config(state=state)
+            self.ocr_btn_tk.config(state=state)
             self.cancel_btn.config(state=cancel_state)
 
     def request_cancel(self):
@@ -606,6 +835,12 @@ class PDFToWordApp:
                 subprocess.Popen(["open" if sys.platform == "darwin" else "xdg-open", folder])
 
 if __name__ == "__main__":
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("JinsakaiCorp.ForgePDF.1")
+    except Exception:
+        pass
+
     if HAS_CTK:
         root = ctk.CTk()
     else:
